@@ -39,19 +39,29 @@ def new_csv_as_dict(csv_path, fieldnames):
         DictWriter object of path
     """
 
-    f = open(csv_path, 'w', encoding='latin1')
+    f = open(csv_path, 'w', encoding='latin1', newline='')
     c = csv.DictWriter(f, fieldnames=fieldnames)
     return c
 
 
 def new_text_file(txt_path, lines):
-    f = open(txt_path, 'w')
+    """ Writes the lines to the specified text file
+
+    Parameters
+    ----------
+    txt_path : str
+        Path to text file
+    lines : list of str
+        List of lines to be written
+    """
+
+    f = open(txt_path, 'w', encoding='latin1')
     f.writelines(lines)
 
 
 class Select:
     @staticmethod
-    def classes_to_names(desc_path):
+    def class_names_to_human_names(desc_path):
         """ Maps class names to human descriptions
 
         Parameters
@@ -72,6 +82,45 @@ class Select:
         for row in c:
             label_to_human_label[row["LabelName"]] = row["HumanLabel"]
         return label_to_human_label
+
+    @staticmethod
+    def get_class_counts(root_dir, human_readable=None):
+        """ Returns the counts of each class for the training, validation, and test sets
+
+        Parameters
+        ----------
+        root_dir : str
+            Root directory containing csv files and new folder
+        human_readable : bool
+            Whether the dictionary should use the class labels as keys or human descriptions
+
+        Returns
+        -------
+        dict of str -> dict of str -> int
+            Top level dictionary is keyed by labels or human descriptions, second level is train, validation, or test,
+            the value of the second level dictionary is the counts for that labels subset
+        """
+
+        human_readable = human_readable or True
+        class_counts = {}
+        for subset in ["train", "validation", "test"]:
+            print("Loading CSVs for {}".format(subset))
+            anno_file = "{}-annotations-human-imagelabels.csv".format(subset)
+            anno_path = os.path.join(root_dir, anno_file)
+            c = load_csv_as_dict(anno_path)
+            for row in tqdm(c):
+                label_name = row["LabelName"]
+                if not class_counts.get(label_name):
+                    class_counts[label_name] = {}
+                if not class_counts[label_name].get(subset):
+                    class_counts[label_name][subset] = 0
+                class_counts[label_name][subset] += 1
+        if human_readable:
+            label_to_human_label = Select.class_names_to_human_names(os.path.join(root_dir, "class-descriptions.csv"))
+            for label in label_to_human_label.keys():
+                class_counts[label_to_human_label[label]] = class_counts[label]
+                del class_counts[label]
+        return class_counts
 
     @staticmethod
     def get_class_names(classes_path):
@@ -208,7 +257,7 @@ class Construct:
         for subset in ["train", "validation", "test"]:
             print("Building new CSVs for {}".format(subset))
             anno_file = "{}-annotations-human-imagelabels.csv".format(subset)
-            labels_file = "{}-images-with-labels-with-rotation.csv".format(subset)
+            labels_file = "{}-images-{}with-rotation.csv".format(subset, "with-labels-" if subset == "train" else "")
             Construct.build_images_csv(anno_file, labels_file, new_folder, root_dir, classes)
 
     @staticmethod

@@ -194,7 +194,7 @@ class Construct:
 
         Parameters
         ----------
-        classes : set of str
+        classes : iterable of str
             Set of classes to be kept
         new_folder : str
             New folder to place new CSV's
@@ -202,6 +202,9 @@ class Construct:
             Root directory contianing csv files and new folder
         """
 
+        os.mkdir(os.path.join(root_dir, new_folder))
+        if not isinstance(classes, type):
+            classes = set(classes)
         for subset in ["train", "validation", "test"]:
             print("Building new CSVs for {}".format(subset))
             anno_file = "{}-annotations-human-imagelabels.csv".format(subset)
@@ -209,7 +212,7 @@ class Construct:
             Construct.build_images_csv(anno_file, labels_file, new_folder, root_dir, classes)
 
     @staticmethod
-    def build_classes_sample(new_folder, root_dir, n, seed=None, classes_file=None):
+    def build_classes_sample(new_folder, root_dir, n, seed=None):
         """ Samples n random classes and builds a new dataset in new_folder where only the specified classes are present
 
         Parameters
@@ -222,16 +225,12 @@ class Construct:
             Number of classes to select
         seed : int
             Seed for random number generator
-        classes_file : str
-            File name of text file containing all classes
         """
 
-        os.mkdir(os.path.join(root_dir, new_folder))
-        classes_file = classes_file or 'classes-trainable.txt'
+        classes_file = 'classes-trainable.txt'
         classes_path = os.path.join(root_dir, classes_file)
         print("Selecting random sample of {} classes".format(n))
         classes = Select.select_random_classes(classes_path, n, seed=seed)
+        Construct.build_classes_sub_files(classes, new_folder, root_dir)
         new_classes_path = os.path.join(root_dir, new_folder, classes_file)
         new_text_file(new_classes_path, classes)
-        classes = set(classes)
-        Construct.build_classes_sub_files(classes, new_folder, root_dir)

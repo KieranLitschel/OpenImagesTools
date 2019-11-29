@@ -1,10 +1,8 @@
 import random
 from tqdm import tqdm
 import Common
-import Select
 
 
-@staticmethod
 def class_names_to_human_names(desc_path):
     """ Maps class names to human descriptions
 
@@ -28,7 +26,6 @@ def class_names_to_human_names(desc_path):
     return label_to_human_label
 
 
-@staticmethod
 def get_class_names(classes_path):
     """ Loads the classes names from file into a set.
 
@@ -52,7 +49,6 @@ def get_class_names(classes_path):
     return classes
 
 
-@staticmethod
 def select_random_classes(classes_path, n, seed=None):
     """ Loads the class classes from file and selects a random sample n.
 
@@ -73,12 +69,11 @@ def select_random_classes(classes_path, n, seed=None):
 
     seed = seed or 0
     random.seed(seed)
-    classes = Select.get_class_names(classes_path)
+    classes = get_class_names(classes_path)
     chosen_classes = random.sample(classes, n)
     return chosen_classes
 
 
-@staticmethod
 def select_images_with_class(annotations_path, classes):
     """ Loads the annotations file and returns a list of images in it that belong to one of the classes passed.
 
@@ -104,4 +99,3 @@ def select_images_with_class(annotations_path, classes):
         if label in classes:
             images.add(image_id)
     return images
-

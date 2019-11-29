@@ -43,6 +43,27 @@ def get_class_counts(root_dir, human_readable=None):
     return class_counts
 
 
+def number_of_images(root_dir):
+    """ Returns the count of all images
+
+    Parameters
+    ----------
+    root_dir : str
+        Root directory containing csv files and new folder
+
+    Returns
+    -------
+    int
+        Count of all images
+    """
+    total = 0
+    counts = get_class_counts(root_dir)
+    for label in counts.keys():
+        for subset in counts[label].keys():
+            total += counts[label][subset]
+    return total
+
+
 def download_space_required(root_dir):
     """ Returns the space required in bytes to download all training, validation, and test files
 

@@ -56,6 +56,7 @@ def number_of_images(root_dir):
     int
         Count of all images
     """
+    
     total = 0
     counts = get_class_counts(root_dir)
     for label in counts.keys():

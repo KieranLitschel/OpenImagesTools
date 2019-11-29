@@ -11,7 +11,7 @@ def build_images_csv(anno_file, labels_file, new_folder, root_dir, classes):
     Parameters
     ----------
     anno_file : str
-        Name of csv files with annotations, typically "XXX-annotations-human-imagelabels.csv"
+        Name of csv files with labels, typically "XXX-annotations-human-imagelabels.csv"
     labels_file : str
         Name of csv files with annotations, typically "XXX-images-with-labels-with-rotation.csv"
     new_folder : str

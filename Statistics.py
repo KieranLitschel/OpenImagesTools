@@ -41,3 +41,27 @@ def get_class_counts(root_dir, human_readable=None):
             class_counts[label_to_human_label[label]] = class_counts[label]
             del class_counts[label]
     return class_counts
+
+
+def download_space_required(root_dir):
+    """ Returns the space required in bytes to download all training, validation, and test files
+
+    Parameters
+    ----------
+    root_dir : str
+        Root directory containing csv files and new folder
+
+    Returns
+    -------
+    int
+        Bytes required to download all training, validation, and test files
+    """
+
+    size = 0
+    for subset in ["train", "validation", "test"]:
+        labels_file = "{}-images-{}with-rotation.csv".format(subset, "with-labels-" if subset == "train" else "")
+        print("Reading {}".format(subset))
+        c = Common.load_csv_as_dict(os.path.join(root_dir, labels_file))
+        for row in tqdm(c):
+            size += int(row["OriginalSize"])
+    return size

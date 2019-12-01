@@ -94,6 +94,6 @@ def extract_image_id_from_flickr_static(static_url):
         Image id of url
     """
 
-    pattern = "http[s]?://[^/]+/[^/]+/([^_]*)"
+    pattern = r"(?:.*?\/\/?)+([^_]*)"
     image_id = re.findall(pattern, static_url)[0]
     return image_id

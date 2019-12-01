@@ -11,7 +11,8 @@ places_row = ["ID", "PlacesInfo"]
 
 def join_labels_to_yfcc(labels_dir, yfcc_dir, dataset=None, places=None):
     """ Joins the Open Images labels to the YFCC100M datasets specified, outputting the result in the same directory
-        with the file ending "-extended.csv" instead of ".csv"
+        with the file ending "-extended.csv" instead of ".csv". The output file maintains the same order, but where
+        no matches to YFCC100M was found the rows are omitted from the output file
 
     Parameters
     ----------

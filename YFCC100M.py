@@ -57,13 +57,13 @@ def join_labels_to_yfcc(labels_dir, yfcc_dir, dataset=None, places=None):
         print("Matching Open Images to YFCC100M Dataset")
         yfcc100m_dataset = Common.load_csv_as_dict(os.path.join(yfcc_dir, "yfcc100m_dataset"), fieldnames=dataset_rows,
                                                    delimiter="\t")
-        join_matches(rows_by_flickr_id, matches, yfcc100m_dataset)
+        _join_matches(rows_by_flickr_id, matches, yfcc100m_dataset)
 
     if places:
         print("Matching Open Images to YFCC100M Places")
         yfcc100m_places = Common.load_csv_as_dict(os.path.join(yfcc_dir, "yfcc100m_places"), fieldnames=places_row,
                                                   delimiter="\t")
-        join_matches(rows_by_flickr_id, matches, yfcc100m_places)
+        _join_matches(rows_by_flickr_id, matches, yfcc100m_places)
 
     print("Writing results to file")
     fieldnames = list(rows_by_flickr_id["train"][order["train"][0]].keys())
@@ -76,7 +76,20 @@ def join_labels_to_yfcc(labels_dir, yfcc_dir, dataset=None, places=None):
         w.writerows(rows)
 
 
-def join_matches(rows_by_flickr_id, matches, yfcc100m):
+def _join_matches(rows_by_flickr_id, matches, yfcc100m):
+    """ Given the dataset from yfcc100m, iterate over it, for every match with OpenImages, add the flickr image id to
+        matches, and update the column values with those given in the YFCC100M dataset
+
+    Parameters
+    ----------
+    rows_by_flickr_id : dict of str -> dict of str -> OrderedDict of str -> str
+        First level of dictionary is train, validation, and test, second level is flickr image id's that are part of
+        that subset, third level is OrderedDict mapping column names to values
+    matches : set of str
+        Set of image id's from the training, validation, and test set found in the YFCC100M dataset
+    yfcc100m : csv.DictReader
+        Dict reader for a YFCC100M dataset
+    """
     for row in tqdm(yfcc100m):
         flickr_id = row["ID"]
         for subset in ["train", "validation", "test"]:

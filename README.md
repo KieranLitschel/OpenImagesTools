@@ -1,4 +1,4 @@
-# Open Images Tools
+# Purpose
 I made this repository whilst working on my final years honours project. In it I have implemented tools for processing 
 the CSV's in the Open Images dataset. It supports the Open Images V5 dataset, and should be backward compatibile with 
 earlier version and offers functionality to segment the dataset into classes and download them. The most notable contribution
@@ -10,7 +10,7 @@ you can only make 3600 requests per hour, it would have taken 8 hours to get a s
 images via requests to the Flicker API, whereas my implementation joined all information in the YFCC100M dataset onto the
  720 thousand photos in 50 minutes.
 
-# Purpose
+# Description
 
 The most notable modes are Construct and YFCC100M. Construct offers functionality for creating a subdirectory within the
 one the Open Images csv's are stored in, where only user specified classes are described. The reasoning for creating a 

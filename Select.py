@@ -74,6 +74,60 @@ def select_random_classes(classes_path, n, seed=None):
     return chosen_classes
 
 
+def get_image_names(labels_path, required_columns=None):
+    """ Loads the images from file and returns their ids
+
+    Parameters
+    ----------
+    labels_path : str
+        Path to the CSV labels files
+    required_columns : list of str
+        Set of columns required to not be the empty string for the row to be included in the sample, if None
+
+    Returns
+    -------
+    list of str
+        Image ids
+    """
+
+    c = Common.load_csv_as_dict(labels_path)
+    image_ids = []
+    for row in c:
+        if required_columns is not None:
+            for column_name in required_columns:
+                if row[column_name] == '':
+                    continue
+        image_ids.append(row["ImageID"])
+    return image_ids
+
+
+def select_random_images(labels_path, n, required_columns=None, seed=None):
+    """ Loads the images from file and selects a random sample n.
+
+    Parameters
+    ----------
+    labels_path : str
+        Path to the CSV labels files
+    n : int
+        Number of images to return
+    required_columns : list of str
+        Set of columns required to not be the empty string for the row to be included in the sample, if None
+    seed : int
+        Seed for random number generator
+
+    Returns
+    -------
+    set of str
+        n images randomly sampled from CSV
+    """
+
+    seed = seed or 0
+    random.seed(seed)
+    image_ids = get_image_names(labels_path, required_columns)
+    chosen_images = set(random.sample(image_ids, n))
+    return chosen_images
+
+
 def select_images_with_class(annotations_path, classes):
     """ Loads the annotations file and returns a list of images in it that belong to one of the classes passed.
 

@@ -43,15 +43,13 @@ def get_class_counts(root_dir, human_readable=None):
     return class_counts
 
 
-def number_of_images(root_dir, extended=None):
+def number_of_images(root_dir):
     """ Returns the count of all images
 
     Parameters
     ----------
     root_dir : str
         Root directory containing csv files and new folder
-    extended : bool
-        Whether to count regular dataset or YFCC100M extended dataset, default False
 
     Returns
     -------
@@ -59,16 +57,12 @@ def number_of_images(root_dir, extended=None):
         Count of all images
     """
 
-    extended = False if extended is None else extended
     count = 0
     for subset in ["train", "validation", "test"]:
         print("Loading CSVs for {}".format(subset))
-        labels_file = "{}-images-{}with-rotation{}.csv".format(subset, "with-labels-" if subset == "train" else "",
-                                                               "-extended" if extended else "")
+        labels_file = "{}-images-{}with-rotation.csv".format(subset, "with-labels-" if subset == "train" else "")
         labels_path = os.path.join(root_dir, labels_file)
-        c = Common.load_csv_as_dict(labels_path)
-        for _ in tqdm(c):
-            count += 1
+        count += len(Select.get_image_names(labels_path))
     return count
 
 

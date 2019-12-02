@@ -43,13 +43,15 @@ def get_class_counts(root_dir, human_readable=None):
     return class_counts
 
 
-def number_of_images(root_dir):
+def number_of_images(root_dir, per_subset=None):
     """ Returns the count of all images
 
     Parameters
     ----------
     root_dir : str
         Root directory containing csv files and new folder
+    per_subset : bool
+        Whether to give stats per subset or for the whole dataset, by default the whole dataset
 
     Returns
     -------
@@ -57,13 +59,18 @@ def number_of_images(root_dir):
         Count of all images
     """
 
-    count = 0
+    per_subset = False if per_subset is None else per_subset
+
+    counts = {}
     for subset in ["train", "validation", "test"]:
+        counts[subset] = 0
         print("Loading CSVs for {}".format(subset))
         labels_file = "{}-images-{}with-rotation.csv".format(subset, "with-labels-" if subset == "train" else "")
         labels_path = os.path.join(root_dir, labels_file)
-        count += len(Select.get_image_names(labels_path))
-    return count
+        counts[subset] += len(Select.get_image_names(labels_path))
+    if not per_subset:
+        counts = sum(counts.values())
+    return counts
 
 
 def download_space_required(root_dir):

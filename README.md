@@ -7,7 +7,8 @@ described by the two datasets, and this can be exploited to gather additional me
 having to query the API. This proves highly efficient, for instance in the classes I was working with I found that of the 
 2.4 million images of those classes in Open Images, 720 thousand of them were also in the YFCC100M dataset. Given that
 you can only make 3600 requests per hour, it would have taken 8 hours to get a single attribute of metadata for these 720 thousand
-images, whereas my implementation joined all information in the YFCC100M dataset onto the 720 thousand photos in 50 minutes.
+images via requests to the Flicker API, whereas my implementation joined all information in the YFCC100M dataset onto the
+ 720 thousand photos in 50 minutes.
 
 # Purpose
 

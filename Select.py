@@ -92,7 +92,7 @@ def get_image_names(labels_path, required_columns=None):
 
     c = Common.load_csv_as_dict(labels_path)
     image_ids = []
-    for row in c:
+    for row in tqdm(c):
         if required_columns is not None:
             for column_name in required_columns:
                 if row[column_name] == '':

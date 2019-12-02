@@ -1,5 +1,6 @@
 import csv
 import re
+import os
 
 import sys
 maxInt = sys.maxsize
@@ -58,6 +59,30 @@ def new_csv_as_dict(csv_path, fieldnames):
     f = open(csv_path, 'w', encoding='latin1', newline='')
     c = csv.DictWriter(f, fieldnames=fieldnames)
     return c
+
+
+def copy_rows_on_image_id(root_dir, new_folder, csv_file, image_ids):
+    """ For the csv file specified, creates a copy in new_folder, where rows that are not in image_ids are omitted
+
+    Parameters
+    ----------
+    new_folder : str
+        New folder to place new CSV
+    root_dir : str
+        Root directory contianing csv files and new folder
+    csv_file : str
+        Location of CSV file
+    image_ids : set of str
+        Set of image_ids who's rows should be copied over
+    """
+
+    path = os.path.join(root_dir, csv_file)
+    new_path = os.path.join(root_dir, new_folder, csv_file)
+    c = load_csv_as_dict(path)
+    w = new_csv_as_dict(new_path, c.fieldnames)
+    rows = [row for row in c if row["ImageID"] in image_ids]
+    w.writeheader()
+    w.writerows(rows)
 
 
 def new_text_file(txt_path, lines):

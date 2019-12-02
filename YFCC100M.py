@@ -1,4 +1,5 @@
 import Common
+import Construct
 import os
 from tqdm import tqdm
 
@@ -9,7 +10,7 @@ dataset_rows = ["LineNumber", "ID", "Hash", "UserNSID", "UserNickname", "DateTak
 places_row = ["ID", "PlacesInfo"]
 
 
-def join_labels_to_yfcc(labels_dir, yfcc_dir, dataset=None, places=None):
+def join_labels_to_yfcc(labels_dir, yfcc_dir, new_folder="Extended", dataset=None, places=None):
     """ Joins the Open Images labels to the YFCC100M datasets specified, outputting the result in the same directory
         with the file ending "-extended.csv" instead of ".csv". The output file maintains the same order, but where
         no matches to YFCC100M was found the rows are omitted from the output file
@@ -20,6 +21,8 @@ def join_labels_to_yfcc(labels_dir, yfcc_dir, dataset=None, places=None):
         Path to the directory of CSV labels files
     yfcc_dir : str
         Directory where the YFCC files are stored
+    new_folder : str
+        Folder to put the joined dataset in
     dataset : bool
         Whether to extend with the dataset file, by default true
     places : bool
@@ -28,6 +31,8 @@ def join_labels_to_yfcc(labels_dir, yfcc_dir, dataset=None, places=None):
 
     dataset = True if dataset is None else dataset
     places = True if places is None else places
+
+    os.mkdir(os.path.join(labels_dir, new_folder))
 
     print("Building dictionary mapping Flickr ID to OpenImages ID")
     rows_by_flickr_id = {}
@@ -69,12 +74,18 @@ def join_labels_to_yfcc(labels_dir, yfcc_dir, dataset=None, places=None):
     print("Writing results to file")
     fieldnames = list(rows_by_flickr_id["train"][order["train"][0]].keys())
     for subset in ["train", "validation", "test"]:
+        image_ids = set()
         labels_file = "{}-images-{}with-rotation.csv".format(subset, "with-labels-" if subset == "train" else "")
-        labels_path = os.path.join(labels_dir, labels_file)
-        w = Common.new_csv_as_dict(labels_path.replace(".csv", "-extended.csv"), fieldnames)
+        new_labels_path = os.path.join(labels_dir, new_folder, labels_file)
+        w = Common.new_csv_as_dict(new_labels_path, fieldnames)
         rows = [rows_by_flickr_id[subset][flickr_id] for flickr_id in order[subset] if flickr_id in matches]
+        for row in rows:
+            image_ids.add(row["ImageID"])
         w.writeheader()
         w.writerows(rows)
+
+        anno_file = "{}-annotations-human-imagelabels.csv".format(subset)
+        Common.copy_rows_on_image_id(labels_dir, new_folder, anno_file, image_ids)
 
 
 def _join_matches(rows_by_flickr_id, matches, yfcc100m):

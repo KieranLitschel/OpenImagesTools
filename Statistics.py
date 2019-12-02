@@ -21,7 +21,7 @@ def get_class_counts(root_dir, human_readable=None):
         the value of the second level dictionary is the counts for that labels subset
     """
 
-    human_readable = human_readable or True
+    human_readable = True if human_readable is None else human_readable
     class_counts = {}
     for subset in ["train", "validation", "test"]:
         print("Loading CSVs for {}".format(subset))
@@ -43,26 +43,33 @@ def get_class_counts(root_dir, human_readable=None):
     return class_counts
 
 
-def number_of_images(root_dir):
+def number_of_images(root_dir, extended=None):
     """ Returns the count of all images
 
     Parameters
     ----------
     root_dir : str
         Root directory containing csv files and new folder
+    extended : bool
+        Whether to count regular dataset or YFCC100M extended dataset, default False
 
     Returns
     -------
     int
         Count of all images
     """
-    
-    total = 0
-    counts = get_class_counts(root_dir)
-    for label in counts.keys():
-        for subset in counts[label].keys():
-            total += counts[label][subset]
-    return total
+
+    extended = False if extended is None else extended
+    count = 0
+    for subset in ["train", "validation", "test"]:
+        print("Loading CSVs for {}".format(subset))
+        labels_file = "{}-images-{}with-rotation{}.csv".format(subset, "with-labels-" if subset == "train" else "",
+                                                               "-extended" if extended else "")
+        labels_path = os.path.join(root_dir, labels_file)
+        c = Common.load_csv_as_dict(labels_path)
+        for _ in tqdm(c):
+            count += 1
+    return count
 
 
 def download_space_required(root_dir):

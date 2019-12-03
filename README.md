@@ -1,14 +1,19 @@
 # Purpose
 I made this repository whilst working on my final years honours project. In it I have implemented tools for processing 
 the CSV's in the Open Images dataset. It supports the Open Images V5 dataset, and should be backward compatibile with 
-earlier version and offers functionality to segment the dataset into classes and download them. The most notable contribution
-of this repository is offering functionality to join Open Images with YFCC100M. There is an overlap between the images 
-described by the two datasets, and this can be exploited to gather additional metadata like user and geo tags without 
+earlier version and offers functionality to segment the dataset into classes and download them.
+
+The most notable contribution of this repository is offering functionality to join Open Images with YFCC100M. There is an overlap between the images described by the two datasets, and this can be exploited to gather additional metadata like user and geo tags without 
 having to query the API. This proves highly efficient, for instance in the classes I was working with I found that of the 
 2.4 million images of those classes in Open Images, 720 thousand of them were also in the YFCC100M dataset. Given that
 you can only make 3600 requests per hour, it would have taken 8 hours to get a single attribute of metadata for these 720 thousand
 images via requests to the Flicker API, whereas my implementation joined all information in the YFCC100M dataset onto the
  720 thousand photos in 50 minutes.
+ 
+Another notable contribution is that the method for downloading a subset of files keeps track of how many images couldn't be downloaded.
+So if for n photos sampled, we fail to download m of them, we then discard of the m photos from our subset, and sample another m, and we
+keep repeating this until no downloads fail. This guarentees the user will end up with exactly the number of photos they requested for each
+subset.
 
 # Description
 

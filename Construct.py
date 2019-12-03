@@ -96,7 +96,7 @@ def build_images_sample(new_folder, root_dir, ns, required_columns=None, seed=No
     new_folder : str
         New folder to place new CSV's
     root_dir : str
-        Root directory contianing csv files and new folder
+        Root directory containing csv files and new folder
     ns : tuple of int
         Number of images to select for (training, validation, test) respectively, if any are None all are sampled
     required_columns : list of str

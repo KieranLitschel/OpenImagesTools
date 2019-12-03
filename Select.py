@@ -74,8 +74,35 @@ def select_random_classes(classes_path, n, seed=None):
     return chosen_classes
 
 
+def get_rows(csv_path, required_columns=None):
+    """ Loads the rows from the file and returns their ids
+
+    Parameters
+    ----------
+    csv_path : str
+        Path to the CSV file
+    required_columns : list of str
+        Set of columns required to not be the empty string for the row to be included in the sample, if None
+
+    Returns
+    -------
+    list of OrderedDict
+        Rows that do not have the empty string for the required columns
+    """
+
+    c = Common.load_csv_as_dict(csv_path)
+    rows = []
+    for row in tqdm(c):
+        if required_columns is not None:
+            for column_name in required_columns:
+                if row[column_name] == '':
+                    continue
+        rows.append(row)
+    return rows
+
+
 def get_image_names(labels_path, required_columns=None):
-    """ Loads the images from file and returns their ids
+    """ Loads the images ids from file and returns them
 
     Parameters
     ----------
@@ -90,15 +117,7 @@ def get_image_names(labels_path, required_columns=None):
         Image ids
     """
 
-    c = Common.load_csv_as_dict(labels_path)
-    image_ids = []
-    for row in tqdm(c):
-        if required_columns is not None:
-            for column_name in required_columns:
-                if row[column_name] == '':
-                    continue
-        image_ids.append(row["ImageID"])
-    return image_ids
+    return [row["ImageID"] for row in get_rows(labels_path, required_columns)]
 
 
 def select_random_images(labels_path, n, required_columns=None, seed=None):

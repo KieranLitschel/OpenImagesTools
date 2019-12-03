@@ -1,8 +1,10 @@
 import csv
 import re
 import os
+from tqdm import tqdm
 
 import sys
+
 maxInt = sys.maxsize
 
 while True:
@@ -13,7 +15,7 @@ while True:
         csv.field_size_limit(maxInt)
         break
     except OverflowError:
-        maxInt = int(maxInt/10)
+        maxInt = int(maxInt / 10)
 
 
 def load_csv_as_dict(csv_path, fieldnames=None, delimiter=None):
@@ -80,7 +82,7 @@ def copy_rows_on_image_id(root_dir, new_folder, csv_file, image_ids):
     new_path = os.path.join(root_dir, new_folder, csv_file)
     c = load_csv_as_dict(path)
     w = new_csv_as_dict(new_path, c.fieldnames)
-    rows = [row for row in c if row["ImageID"] in image_ids]
+    rows = [row for row in tqdm(c) if row["ImageID"] in image_ids]
     w.writeheader()
     w.writerows(rows)
 
@@ -122,3 +124,22 @@ def extract_image_id_from_flickr_static(static_url):
     pattern = r"(?:.*?\/\/?)+([^_]*)"
     image_id = re.findall(pattern, static_url)[0]
     return image_id
+
+
+def pass_args_to_f(f, args):
+    """ Given a function f pass it the list of args
+
+    Parameters
+    ----------
+    f : function
+        Function to pass the args to
+    args : list
+        List of args
+
+    Returns
+    -------
+    Return type of f
+        Value return by f with arguments args
+    """
+
+    return f(*args)

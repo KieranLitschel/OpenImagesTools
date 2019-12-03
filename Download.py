@@ -4,21 +4,25 @@ import hashlib
 import base64
 import time
 import warnings
+import os
 
 
-def download_image(image_path, image_id, md5_image_hash, url, attempts=None, timeout=None, wait=None):
+def download_image(root_dir, image_id, md5_image_hash, image_url, download_folder=None, attempts=None,
+                   timeout=None, wait=None):
     """ Attempts to download the image, if it fails None is returned, otherwise the image_id
 
     Parameters
     ----------
-    image_path : str
-        Path to save the image at if the download succeeds
+    root_dir : str
+        Root directory to download to
     image_id : str
         Id of the image being downloaded
     md5_image_hash : str
         Expected base64-encoded MD5 hash of downloaded image
-    url : str
+    image_url : str
         Url to download image from
+    download_folder : str
+        Folder to download images into
     attempts : int
         Maximum number of attempts to try downloading image
     timeout : float
@@ -32,14 +36,15 @@ def download_image(image_path, image_id, md5_image_hash, url, attempts=None, tim
         The image id if the download is successful, otherwise None
     """
 
+    download_folder = download_folder or 'images'
     attempts = attempts or 3
-    timeout = timeout or 5
-    wait = wait or 5
+    timeout = timeout or 2
+    wait = wait or 2
     warn_msg = None
     data = None
     while attempts > 0:
         try:
-            resp = urllib.request.urlopen(url, timeout=timeout)
+            resp = urllib.request.urlopen(image_url, timeout=timeout)
         except urllib.error.HTTPError as e:
             warn_msg = str(e)
             attempts -= 1
@@ -61,6 +66,8 @@ def download_image(image_path, image_id, md5_image_hash, url, attempts=None, tim
     if warn_msg is not None:
         warnings.warn("Downloading {} failed with {}".format(image_id, warn_msg))
         return None
+    image_ext = image_url.split(".")[-1]
+    image_path = os.path.join(root_dir, download_folder, "{}.{}".format(image_id, image_ext))
     f = open(image_path, 'wb')
     f.write(data)
     f.close()

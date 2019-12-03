@@ -2,6 +2,10 @@ import os
 import Select
 import Common
 from tqdm import tqdm
+import random
+import multiprocessing
+import Download
+from functools import partial
 
 
 def build_images_csv(anno_file, labels_file, new_folder, root_dir, classes):
@@ -88,7 +92,8 @@ def build_classes_sample(new_folder, root_dir, n, seed=None):
     Common.new_text_file(new_classes_path, classes)
 
 
-def build_images_sample(new_folder, root_dir, ns, required_columns=None, seed=None):
+def build_images_sample(new_folder, root_dir, ns, n_jobs=None, required_columns=None, seed=None, attempts=None,
+                        timeout=None, wait=None):
     """ Samples n random images and builds a new dataset in new_folder where only the specified classes are present
 
     Parameters
@@ -99,26 +104,74 @@ def build_images_sample(new_folder, root_dir, ns, required_columns=None, seed=No
         Root directory containing csv files and new folder
     ns : tuple of int
         Number of images to select for (training, validation, test) respectively, if any are None all are sampled
+    n_jobs : int
+        Number of images to download in parallel at once. Default of 9, as there are around 9 farms, so this means
+        on average we'll only be making 1 request to a farm at a time
     required_columns : list of str
         Set of columns required to not be the empty string for the row to be included in the sample, if None
     seed : int
         Seed for random number generator
+    attempts : int
+        Maximum number of attempts to try downloading an image
+    timeout : float
+        Timeout in seconds for a request
+    wait : float
+        Time to wait after a failed download attempt
     """
+
+    seed = seed or 0
+    n_jobs = n_jobs or 9
+
+    new_root = os.path.join(root_dir, new_folder)
+    images_folder = os.path.join(new_root, "images")
+
+    os.mkdir(new_root)
+    os.mkdir(images_folder)
 
     subsets = ["train", "validation", "test"]
     for i in range(len(subsets)):
         subset = subsets[i]
         n = ns[i]
 
+        print("Building subset for {}".format(subset))
+
         labels_file = "{}-images-{}with-rotation.csv".format(subset, "with-labels-" if subset == "train" else "")
         labels_path = os.path.join(root_dir, labels_file)
         anno_file = "{}-annotations-human-imagelabels.csv".format(subset)
 
+        print("Loading images rows")
+        rows = Select.get_rows(labels_path, required_columns=required_columns)
+        selected_image_ids = set()
+
+        os.mkdir(os.path.join(images_folder, subset))
+
         if n is None:
-            image_ids = Select.get_image_names(labels_path, required_columns=required_columns)
+            n = len(rows)
         else:
-            image_ids = Select.select_random_images(labels_path, n, required_columns=required_columns, seed=seed)
+            print("Selecting {} rows".format(n))
+            random.seed(seed)
+            random.shuffle(rows)
+        pos = 0
+        pool = multiprocessing.Pool(n_jobs)
+        downloader = partial(Common.pass_args_to_f,
+                             partial(Download.download_image, images_folder, download_folder=subset, attempts=attempts,
+                                     timeout=timeout, wait=wait))
+        req = n
+        print("Downloading images")
+        while req > 0:
+            args = [[row["ImageID"], row["OriginalMD5"], row["OriginalURL"]] for row in rows[pos: pos + req]]
+            successful_download_ids = tqdm(pool.imap(downloader, args))
+            for image_id in successful_download_ids:
+                if image_id is not None:
+                    selected_image_ids.add(image_id)
+            pos += req
+            available = len(rows) - pos
+            failed = n - len(selected_image_ids)
+            req = min(failed, available)
+            if req > 0:
+                print("Failed to download {} images, trying to download next {} instead".format(failed, req))
 
+        print("Creating new CSVs for subset")
         for csv_file in [labels_file, anno_file]:
-            Common.copy_rows_on_image_id(root_dir, new_folder, csv_file, image_ids)
-
+            print("Creating new {}".format(csv_file))
+            Common.copy_rows_on_image_id(root_dir, new_folder, csv_file, selected_image_ids)

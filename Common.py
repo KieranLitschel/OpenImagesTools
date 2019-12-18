@@ -18,128 +18,148 @@ while True:
         maxInt = int(maxInt / 10)
 
 
-def load_csv_as_dict(csv_path, fieldnames=None, delimiter=None):
-    """ Loads the csv DictReader
+class Common:
+    def __init__(self, image_level=None):
+        """ Builds the object
 
-    Parameters
-    ----------
-    csv_path : str
-        Path to csv
-    fieldnames : list of str
-        List of fieldnames, if None then fieldnames are take from the first row
-    delimiter : str
-        String to split on 
+        Parameters
+        ----------
+        image_level : bool
+            Whether using image-level dataset, set to False if using bounding boxes, by default is True
+        """
 
-    Returns
-    -------
-    csv.DictReader
-        DictReader object of path
-    """
+        self.image_level = True if image_level is None else image_level
 
-    delimiter = delimiter or ","
-    f = open(csv_path, encoding='latin1')
-    c = csv.DictReader(f, fieldnames=fieldnames, delimiter=delimiter)
-    return c
+    @staticmethod
+    def load_csv_as_dict(csv_path, fieldnames=None, delimiter=None):
+        """ Loads the csv DictReader
 
+        Parameters
+        ----------
+        csv_path : str
+            Path to csv
+        fieldnames : list of str
+            List of fieldnames, if None then fieldnames are take from the first row
+        delimiter : str
+            String to split on
 
-def new_csv_as_dict(csv_path, fieldnames):
-    """ Loads the csv DictWriter
+        Returns
+        -------
+        csv.DictReader
+            DictReader object of path
+        """
 
-    Parameters
-    ----------
-    csv_path : str
-        Path to csv
-    fieldnames : list of str
-        List of fieldnames for csv
+        delimiter = delimiter or ","
+        f = open(csv_path, encoding='latin1')
+        c = csv.DictReader(f, fieldnames=fieldnames, delimiter=delimiter)
+        return c
 
-    Returns
-    -------
-    csv.DictWriter
-        DictWriter object of path
-    """
+    @staticmethod
+    def new_csv_as_dict(csv_path, fieldnames):
+        """ Loads the csv DictWriter
 
-    f = open(csv_path, 'w', encoding='latin1', newline='')
-    c = csv.DictWriter(f, fieldnames=fieldnames)
-    return c
+        Parameters
+        ----------
+        csv_path : str
+            Path to csv
+        fieldnames : list of str
+            List of fieldnames for csv
 
+        Returns
+        -------
+        csv.DictWriter
+            DictWriter object of path
+        """
 
-def copy_rows_on_image_id(root_dir, new_folder, csv_file, image_ids):
-    """ For the csv file specified, creates a copy in new_folder, where rows that are not in image_ids are omitted
+        f = open(csv_path, 'w', encoding='latin1', newline='')
+        c = csv.DictWriter(f, fieldnames=fieldnames)
+        return c
 
-    Parameters
-    ----------
-    new_folder : str
-        New folder to place new CSV
-    root_dir : str
-        Root directory contianing csv files and new folder
-    csv_file : str
-        Location of CSV file
-    image_ids : set of str
-        Set of image_ids who's rows should be copied over
-    """
+    @staticmethod
+    def copy_rows_on_image_id(root_dir, new_folder, csv_file, image_ids):
+        """ For the csv file specified, creates a copy in new_folder, where rows that are not in image_ids are omitted
 
-    path = os.path.join(root_dir, csv_file)
-    new_path = os.path.join(root_dir, new_folder, csv_file)
-    c = load_csv_as_dict(path)
-    w = new_csv_as_dict(new_path, c.fieldnames)
-    rows = [row for row in tqdm(c) if row["ImageID"] in image_ids]
-    w.writeheader()
-    w.writerows(rows)
+        Parameters
+        ----------
+        new_folder : str
+            New folder to place new CSV
+        root_dir : str
+            Root directory contianing csv files and new folder
+        csv_file : str
+            Location of CSV file
+        image_ids : set of str
+            Set of image_ids who's rows should be copied over
+        """
 
+        path = os.path.join(root_dir, csv_file)
+        new_path = os.path.join(root_dir, new_folder, csv_file)
+        c = Common.load_csv_as_dict(path)
+        w = Common.new_csv_as_dict(new_path, c.fieldnames)
+        rows = [row for row in tqdm(c) if row["ImageID"] in image_ids]
+        w.writeheader()
+        w.writerows(rows)
 
-def new_text_file(txt_path, lines):
-    """ Writes the lines to the specified text file
+    @staticmethod
+    def new_text_file(txt_path, lines):
+        """ Writes the lines to the specified text file
 
-    Parameters
-    ----------
-    txt_path : str
-        Path to text file
-    lines : list of str
-        List of lines to be written
-    """
+        Parameters
+        ----------
+        txt_path : str
+            Path to text file
+        lines : list of str
+            List of lines to be written
+        """
 
-    f = open(txt_path, 'w', encoding='latin1')
-    f.writelines(lines)
+        f = open(txt_path, 'w', encoding='latin1')
+        f.writelines(lines)
 
+    @staticmethod
+    def extract_image_id_from_flickr_static(static_url):
+        """ Given a static url extract the image id
 
-def extract_image_id_from_flickr_static(static_url):
-    """ Given a static url extract the image id
+        Parameters
+        ----------
+        static_url : str
+            Static url to photo, one of kind:
+                https://farm{farm-id}.staticflickr.com/{server-id}/{id}_{secret}.jpg
+                    or
+                https://farm{farm-id}.staticflickr.com/{server-id}/{id}_{secret}_[mstzb].jpg
+                    or
+                https://farm{farm-id}.staticflickr.com/{server-id}/{id}_{o-secret}_o.(jpg|gif|png)
 
-    Parameters
-    ----------
-    static_url : str
-        Static url to photo, one of kind:
-            https://farm{farm-id}.staticflickr.com/{server-id}/{id}_{secret}.jpg
-                or
-            https://farm{farm-id}.staticflickr.com/{server-id}/{id}_{secret}_[mstzb].jpg
-                or
-            https://farm{farm-id}.staticflickr.com/{server-id}/{id}_{o-secret}_o.(jpg|gif|png)
+        Returns
+        -------
+        str
+            Image id of url
+        """
 
-    Returns
-    -------
-    str
-        Image id of url
-    """
+        pattern = r"(?:.*?\/\/?)+([^_]*)"
+        image_id = re.findall(pattern, static_url)[0]
+        return image_id
 
-    pattern = r"(?:.*?\/\/?)+([^_]*)"
-    image_id = re.findall(pattern, static_url)[0]
-    return image_id
+    @staticmethod
+    def pass_args_to_f(f, args):
+        """ Given a function f pass it the list of args
 
+        Parameters
+        ----------
+        f : function
+            Function to pass the args to
+        args : list
+            List of args
 
-def pass_args_to_f(f, args):
-    """ Given a function f pass it the list of args
+        Returns
+        -------
+        Return type of f
+            Value return by f with arguments args
+        """
 
-    Parameters
-    ----------
-    f : function
-        Function to pass the args to
-    args : list
-        List of args
+        return f(*args)
 
-    Returns
-    -------
-    Return type of f
-        Value return by f with arguments args
-    """
+    def get_anno_file(self, subset):
+        return "{}-annotations-human-imagelabels{}.csv".format(subset, "-boxable" if not self.image_level else "")
 
-    return f(*args)
+    def get_labels_file(self, subset):
+        return "{}-images-{}with-rotation.csv".format(subset, (
+            "with-labels-" if self.image_level else "boxable-") if subset == "train" else "")

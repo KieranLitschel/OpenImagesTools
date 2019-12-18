@@ -38,9 +38,9 @@ class Statistics:
         class_counts = {}
         for subset in ["train", "validation", "test"]:
             print("Loading CSVs for {}".format(subset))
-            anno_file = self.common.get_anno_file(subset)
-            anno_path = os.path.join(root_dir, anno_file)
-            c = Common.load_csv_as_dict(anno_path)
+            image_labels_file = self.common.get_image_labels_file(subset)
+            image_labels_path = os.path.join(root_dir, image_labels_file)
+            c = Common.load_csv_as_dict(image_labels_path)
             for row in tqdm(c):
                 label_name = row["LabelName"]
                 if not class_counts.get(label_name):
@@ -77,9 +77,9 @@ class Statistics:
         for subset in ["train", "validation", "test"]:
             counts[subset] = 0
             print("Loading CSVs for {}".format(subset))
-            labels_file = self.common.get_labels_file(subset)
-            labels_path = os.path.join(root_dir, labels_file)
-            counts[subset] += len(Select.get_image_names(labels_path))
+            image_ids_file = self.common.get_image_ids_file(subset)
+            image_ids_path = os.path.join(root_dir, image_ids_file)
+            counts[subset] += len(Select.get_image_names(image_ids_path))
         if not per_subset:
             counts = sum(counts.values())
         return counts
@@ -100,9 +100,9 @@ class Statistics:
 
         size = 0
         for subset in ["train", "validation", "test"]:
-            labels_file = self.common.get_labels_file(subset)
+            image_ids_file = self.common.get_image_ids_file(subset)
             print("Reading {}".format(subset))
-            c = Common.load_csv_as_dict(os.path.join(root_dir, labels_file))
+            c = Common.load_csv_as_dict(os.path.join(root_dir, image_ids_file))
             for row in tqdm(c):
                 size += int(row["OriginalSize"])
         return size

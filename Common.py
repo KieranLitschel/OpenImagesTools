@@ -157,9 +157,9 @@ class Common:
 
         return f(*args)
 
-    def get_anno_file(self, subset):
+    def get_image_labels_file(self, subset):
         return "{}-annotations-human-imagelabels{}.csv".format(subset, "-boxable" if not self.image_level else "")
 
-    def get_labels_file(self, subset):
+    def get_image_ids_file(self, subset):
         return "{}-images-{}with-rotation.csv".format(subset, (
             "with-labels-" if self.image_level else "boxable-") if subset == "train" else "")

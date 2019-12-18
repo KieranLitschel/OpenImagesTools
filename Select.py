@@ -104,13 +104,13 @@ class Select:
         return rows
 
     @staticmethod
-    def get_image_names(labels_path, required_columns=None):
+    def get_image_names(image_ids_path, required_columns=None):
         """ Loads the images ids from file and returns them
 
         Parameters
         ----------
-        labels_path : str
-            Path to the CSV labels files
+        image_ids_path : str
+            Path to the CSV file with images information
         required_columns : list of str
             Set of columns required to not be the empty string for the row to be included in the sample, if None
 
@@ -120,16 +120,16 @@ class Select:
             Image ids
         """
 
-        return [row["ImageID"] for row in Select.get_rows(labels_path, required_columns)]
+        return [row["ImageID"] for row in Select.get_rows(image_ids_path, required_columns)]
 
     @staticmethod
-    def select_random_images(labels_path, n, required_columns=None, seed=None):
+    def select_random_images(image_ids_path, n, required_columns=None, seed=None):
         """ Loads the images from file and selects a random sample n.
 
         Parameters
         ----------
-        labels_path : str
-            Path to the CSV labels files
+        image_ids_path : str
+            Path to the CSV file with images information
         n : int
             Number of images to return
         required_columns : list of str
@@ -145,18 +145,18 @@ class Select:
 
         seed = seed or 0
         random.seed(seed)
-        image_ids = Select.get_image_names(labels_path, required_columns)
+        image_ids = Select.get_image_names(image_ids_path, required_columns)
         chosen_images = set(random.sample(image_ids, n))
         return chosen_images
 
     @staticmethod
-    def select_images_with_class(annotations_path, classes):
-        """ Loads the annotations file and returns a list of images in it that belong to one of the classes passed.
+    def select_images_with_class(image_labels_path, classes):
+        """ Loads the image labels file and returns a list of images in it that belong to one of the classes passed.
 
         Parameters
         ----------
-        annotations_path : str
-            Path to csv files with annotations, typically "XXX-annotations-human-imagelabels.csv"
+        image_labels_path : str
+            Path to csv files with image labels, typically "XXX-annotations-human-imagelabels.csv"
         classes : iterable of str
             Classes that we want to find the images for
 
@@ -167,7 +167,7 @@ class Select:
         """
         if not isinstance(classes, set):
             classes = set(classes)
-        c = Common.load_csv_as_dict(annotations_path)
+        c = Common.load_csv_as_dict(image_labels_path)
         images = set()
         for row in tqdm(c):
             image_id = row["ImageID"]

@@ -21,16 +21,16 @@ class Construct:
         self.image_level = image_level
         self.common = Common(self.image_level)
 
-    def build_images_csv(self, anno_file, labels_file, new_folder, root_dir, classes):
-        """ Given an annotations file and labels file, builds a new one containing only the specified classes in the new
+    def build_images_csv(self, image_labels_file, image_ids_file, new_folder, root_dir, classes):
+        """ Given an image labels file and image ids file, builds a new one containing only the specified classes in the new
             specified folder
 
         Parameters
         ----------
-        anno_file : str
-            Name of csv files with labels, typically "XXX-annotations-human-imagelabels.csv"
-        labels_file : str
-            Name of csv files with annotations, typically "XXX-images-with-labels-with-rotation.csv"
+        image_labels_file : str
+            Name of csv files with image labels, typically "XXX-annotations-human-imagelabels.csv"
+        image_ids_file : str
+            Name of csv files with image information, typically "XXX-images-with-labels-with-rotation.csv"
         new_folder : str
             New folder to place new CSV's
         root_dir : str
@@ -39,10 +39,10 @@ class Construct:
             Set of classes to be kept
         """
 
-        anno_path = os.path.join(root_dir, anno_file)
+        image_labels_path = os.path.join(root_dir, image_labels_file)
         print("Selecting images to keep")
-        images_to_keep = Select.select_images_with_class(anno_path, classes)
-        for csv_file_name in [anno_file, labels_file]:
+        images_to_keep = Select.select_images_with_class(image_labels_path, classes)
+        for csv_file_name in [image_labels_file, image_ids_file]:
             print("Saving rows for {}".format(csv_file_name))
             old_path = os.path.join(root_dir, csv_file_name)
             new_path = os.path.join(root_dir, new_folder, csv_file_name)
@@ -75,9 +75,9 @@ class Construct:
             classes = set(classes)
         for subset in ["train", "validation", "test"]:
             print("Building new CSVs for {}".format(subset))
-            anno_file = self.common.get_anno_file(subset)
-            labels_file = self.common.get_labels_file(subset)
-            self.build_images_csv(anno_file, labels_file, new_folder, root_dir, classes)
+            image_labels_file = self.common.get_image_labels_file(subset)
+            image_ids_file = self.common.get_image_ids_file(subset)
+            self.build_images_csv(image_labels_file, image_ids_file, new_folder, root_dir, classes)
 
     def build_classes_sample(self, new_folder, root_dir, n, seed=None):
         """ Samples n random classes and builds a new dataset in new_folder where only the specified classes are present
@@ -146,12 +146,12 @@ class Construct:
 
             print("Building subset for {}".format(subset))
 
-            labels_file = self.common.get_labels_file(subset)
-            labels_path = os.path.join(root_dir, labels_file)
-            anno_file = self.common.get_anno_file(subset)
+            image_ids_file = self.common.get_image_ids_file(subset)
+            image_ids_path = os.path.join(root_dir, image_ids_file)
+            image_labels_file = self.common.get_image_labels_file(subset)
 
             print("Loading images rows")
-            rows = Select.get_rows(labels_path, required_columns=required_columns)
+            rows = Select.get_rows(image_ids_path, required_columns=required_columns)
             selected_image_ids = set()
 
             os.mkdir(os.path.join(images_folder, subset))
@@ -184,6 +184,6 @@ class Construct:
                     print("Failed to download {} images, trying to download next {} instead".format(failed, req))
 
             print("Creating new CSVs for subset")
-            for csv_file in [labels_file, anno_file]:
+            for csv_file in [image_ids_file, image_labels_file]:
                 print("Creating new {}".format(csv_file))
                 Common.copy_rows_on_image_id(root_dir, new_folder, csv_file, selected_image_ids)

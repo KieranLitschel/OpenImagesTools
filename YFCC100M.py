@@ -12,7 +12,7 @@ places_row = ["ID", "PlacesInfo"]
 class YFCC100M:
     def __init__(self, image_level=None):
         """ Builds the object
-        
+
         Parameters
         ----------
         image_level : bool
@@ -22,15 +22,15 @@ class YFCC100M:
         self.image_level = True if image_level is None else image_level
         self.common = Common(self.image_level)
 
-    def join_labels_to_yfcc(self, labels_dir, yfcc_dir, new_folder="Extended", dataset=None, places=None):
+    def join_labels_to_yfcc(self, image_ids_dir, yfcc_dir, new_folder="Extended", dataset=None, places=None):
         """ Joins the Open Images labels to the YFCC100M datasets specified, outputting the result in the same directory
             with the file ending "-extended.csv" instead of ".csv". The output file maintains the same order, but where
             no matches to YFCC100M was found the rows are omitted from the output file
 
         Parameters
         ----------
-        labels_dir : str
-            Path to the directory of CSV labels files
+        image_ids_dir : str
+            Path to the directory of CSV files containing information on images
         yfcc_dir : str
             Directory where the YFCC files are stored
         new_folder : str
@@ -44,7 +44,7 @@ class YFCC100M:
         dataset = True if dataset is None else dataset
         places = True if places is None else places
 
-        os.mkdir(os.path.join(labels_dir, new_folder))
+        os.mkdir(os.path.join(image_ids_dir, new_folder))
 
         print("Building dictionary mapping Flickr ID to OpenImages ID")
         rows_by_flickr_id = {}
@@ -52,9 +52,9 @@ class YFCC100M:
         matches = set()
         for subset in ["train", "validation", "test"]:
             print("Loading {}".format(subset))
-            labels_file = self.common.get_labels_file(subset)
-            labels_path = os.path.join(labels_dir, labels_file)
-            open_images = Common.load_csv_as_dict(labels_path)
+            image_ids_file = self.common.get_image_ids_file(subset)
+            image_ids_path = os.path.join(image_ids_dir, image_ids_file)
+            open_images = Common.load_csv_as_dict(image_ids_path)
             rows_by_flickr_id[subset] = {}
             order[subset] = []
             for row in tqdm(open_images):
@@ -88,17 +88,17 @@ class YFCC100M:
         fieldnames = list(rows_by_flickr_id["train"][order["train"][0]].keys())
         for subset in ["train", "validation", "test"]:
             image_ids = set()
-            labels_file = self.common.get_labels_file(subset)
-            new_labels_path = os.path.join(labels_dir, new_folder, labels_file)
-            w = Common.new_csv_as_dict(new_labels_path, fieldnames)
+            image_ids_file = self.common.get_image_ids_file(subset)
+            new_image_ids_path = os.path.join(image_ids_dir, new_folder, image_ids_file)
+            w = Common.new_csv_as_dict(new_image_ids_path, fieldnames)
             rows = [rows_by_flickr_id[subset][flickr_id] for flickr_id in order[subset] if flickr_id in matches]
             for row in rows:
                 image_ids.add(row["ImageID"])
             w.writeheader()
             w.writerows(rows)
 
-            anno_file = self.common.get_anno_file(subset)
-            Common.copy_rows_on_image_id(labels_dir, new_folder, anno_file, image_ids)
+            image_labels_file = self.common.get_image_labels_file(subset)
+            Common.copy_rows_on_image_id(image_ids_dir, new_folder, image_labels_file, image_ids)
 
     @staticmethod
     def _join_matches(rows_by_flickr_id, matches, yfcc100m):

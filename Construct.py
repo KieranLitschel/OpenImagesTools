@@ -21,7 +21,7 @@ class Construct:
         self.image_level = image_level
         self.common = Common(self.image_level)
 
-    def build_images_csv(self, image_labels_file, image_ids_file, new_folder, root_dir, classes):
+    def build_images_csv(self, image_labels_file, image_ids_file, new_folder, root_dir, classes, boxes_file=None):
         """ Given an image labels file and image ids file, builds a new one containing only the specified classes in the new
             specified folder
 
@@ -31,6 +31,9 @@ class Construct:
             Name of csv files with image labels, typically "XXX-annotations-human-imagelabels.csv"
         image_ids_file : str
             Name of csv files with image information, typically "XXX-images-with-labels-with-rotation.csv"
+        boxes_file : str
+            Optional (for use with bounding boxes), name of csv files with bounding boxes information, typically
+            "XXX-annotations-bbox.csv"
         new_folder : str
             New folder to place new CSV's
         root_dir : str
@@ -42,7 +45,10 @@ class Construct:
         image_labels_path = os.path.join(root_dir, image_labels_file)
         print("Selecting images to keep")
         images_to_keep = Select.select_images_with_class(image_labels_path, classes)
-        for csv_file_name in [image_labels_file, image_ids_file]:
+        to_process = [image_labels_file, image_ids_file]
+        if boxes_file:
+            to_process.append(boxes_file)
+        for csv_file_name in to_process:
             print("Saving rows for {}".format(csv_file_name))
             old_path = os.path.join(root_dir, csv_file_name)
             new_path = os.path.join(root_dir, new_folder, csv_file_name)
@@ -77,7 +83,11 @@ class Construct:
             print("Building new CSVs for {}".format(subset))
             image_labels_file = self.common.get_image_labels_file(subset)
             image_ids_file = self.common.get_image_ids_file(subset)
-            self.build_images_csv(image_labels_file, image_ids_file, new_folder, root_dir, classes)
+            boxes_file = None
+            if not self.image_level:
+                boxes_file = self.common.get_boxes_file(subset)
+            self.build_images_csv(image_labels_file, image_ids_file, new_folder, root_dir, classes,
+                                  boxes_file=boxes_file)
 
     def build_classes_sample(self, new_folder, root_dir, n, seed=None):
         """ Samples n random classes and builds a new dataset in new_folder where only the specified classes are present
@@ -148,7 +158,6 @@ class Construct:
 
             image_ids_file = self.common.get_image_ids_file(subset)
             image_ids_path = os.path.join(root_dir, image_ids_file)
-            image_labels_file = self.common.get_image_labels_file(subset)
 
             print("Loading images rows")
             rows = Select.get_rows(image_ids_path, required_columns=required_columns)
@@ -183,7 +192,11 @@ class Construct:
                 if req > 0:
                     print("Failed to download {} images, trying to download next {} instead".format(failed, req))
 
+            image_labels_file = self.common.get_image_labels_file(subset)
+            to_process = [image_ids_file, image_labels_file]
+            if not self.image_level:
+                to_process.append(self.common.get_boxes_file(subset))
+
             print("Creating new CSVs for subset")
-            for csv_file in [image_ids_file, image_labels_file]:
-                print("Creating new {}".format(csv_file))
+            for csv_file in to_process:
                 Common.copy_rows_on_image_id(root_dir, new_folder, csv_file, selected_image_ids)

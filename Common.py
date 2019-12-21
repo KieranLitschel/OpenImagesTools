@@ -91,6 +91,7 @@ class Common:
             Set of image_ids who's rows should be copied over
         """
 
+        print("Creating new {}".format(csv_file))
         path = os.path.join(root_dir, csv_file)
         new_path = os.path.join(root_dir, new_folder, csv_file)
         c = Common.load_csv_as_dict(path)
@@ -151,15 +152,58 @@ class Common:
 
         Returns
         -------
-        Return type of f
-            Value return by f with arguments args
+        Return type of function f
+            Value returned by f for arguments args
         """
 
         return f(*args)
 
     def get_image_labels_file(self, subset):
+        """ Get the name of the image labels file for the specified subset
+
+        Parameters
+        ----------
+        subset : str
+            Subset want filename for, one of train, validation, test
+
+        Returns
+        -------
+        str
+            Name of image labels file for the subset
+        """
+
         return "{}-annotations-human-imagelabels{}.csv".format(subset, "-boxable" if not self.image_level else "")
 
     def get_image_ids_file(self, subset):
+        """ Get the name of the image ids file for the specified subset
+
+        Parameters
+        ----------
+        subset : str
+            Subset want filename for, one of train, validation, test
+
+        Returns
+        -------
+        str
+            Name of image ids file for the subset
+        """
+
         return "{}-images-{}with-rotation.csv".format(subset, (
             "with-labels-" if self.image_level else "boxable-") if subset == "train" else "")
+
+    @staticmethod
+    def get_boxes_file(subset):
+        """ Get the name of the boxes file for the specified subset
+
+        Parameters
+        ----------
+        subset : str
+            Subset want filename for, one of train, validation, test
+
+        Returns
+        -------
+        str
+            Name of boxes file for the subset
+        """
+
+        return "{}-annotations-bbox.csv".format(subset)

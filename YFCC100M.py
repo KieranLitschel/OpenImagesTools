@@ -91,7 +91,8 @@ class YFCC100M:
             image_ids_file = self.common.get_image_ids_file(subset)
             new_image_ids_path = os.path.join(image_ids_dir, new_folder, image_ids_file)
             w = Common.new_csv_as_dict(new_image_ids_path, fieldnames)
-            rows = [rows_by_flickr_id[subset][flickr_id] for flickr_id in order[subset] if flickr_id in matches]
+            print("Creating new {}".format(image_ids_file))
+            rows = [rows_by_flickr_id[subset][flickr_id] for flickr_id in tqdm(order[subset]) if flickr_id in matches]
             for row in rows:
                 image_ids.add(row["ImageID"])
             w.writeheader()
@@ -99,6 +100,9 @@ class YFCC100M:
 
             image_labels_file = self.common.get_image_labels_file(subset)
             Common.copy_rows_on_image_id(image_ids_dir, new_folder, image_labels_file, image_ids)
+            if not self.image_level:
+                boxes_file = self.common.get_boxes_file(subset)
+                Common.copy_rows_on_image_id(image_ids_dir, new_folder, boxes_file, image_ids)
 
     @staticmethod
     def _join_matches(rows_by_flickr_id, matches, yfcc100m):

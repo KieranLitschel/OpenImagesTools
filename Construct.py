@@ -62,14 +62,15 @@ class Construct:
             new_c.writeheader()
             new_c.writerows(rows)
 
-    def build_classes_sub_files(self, classes, new_folder, root_dir):
+    def classes_subset(self, classes, new_folder, root_dir):
         """ Given a set of classes to keep and the locations of CSV's, builds a new directory where only the specified
             classes are kept
 
         Parameters
         ----------
         classes : iterable of str
-            Set of classes to be kept
+            Set of class ids to be kept e.g. /m/02wbm (corresponding to food), class ids can be found in the class names
+            metadata file which can be downloaded from the Open Images website
         new_folder : str
             New folder to place new CSV's
         root_dir : str
@@ -89,7 +90,7 @@ class Construct:
             self.build_images_csv(image_labels_file, image_ids_file, new_folder, root_dir, classes,
                                   boxes_file=boxes_file)
 
-    def build_classes_sample(self, new_folder, root_dir, n, seed=None):
+    def random_classes_subset(self, new_folder, root_dir, n, seed=None):
         """ Samples n random classes and builds a new dataset in new_folder where only the specified classes are present
 
         Parameters
@@ -108,13 +109,12 @@ class Construct:
         classes_path = os.path.join(root_dir, classes_file)
         print("Selecting random sample of {} classes".format(n))
         classes = Select.select_random_classes(classes_path, n, seed=seed)
-        self.build_classes_sub_files(classes, new_folder, root_dir)
+        self.classes_subset(classes, new_folder, root_dir)
         new_classes_path = os.path.join(root_dir, new_folder, classes_file)
         Common.new_text_file(new_classes_path, classes)
 
-    def build_images_sample(self, new_folder, root_dir, ns, n_jobs=None, required_columns=None, seed=None,
-                            attempts=None,
-                            timeout=None, wait=None):
+    def images_sample(self, new_folder, root_dir, ns, n_jobs=None, required_columns=None, seed=None,
+                      attempts=None, timeout=None, wait=None):
         """ Samples n random images and builds a new dataset in new_folder where only the specified classes are present
 
         Parameters
@@ -129,7 +129,7 @@ class Construct:
             Number of images to download in parallel at once. Default of 9, as there are around 9 farms, so this means
             on average we'll only be making 1 request to a farm at a time
         required_columns : list of str
-            Set of columns required to not be the empty string for the row to be included in the sample, if None
+            Set of columns required to not be the empty string for the row to be included in the sample
         seed : int
             Seed for random number generator
         attempts : int

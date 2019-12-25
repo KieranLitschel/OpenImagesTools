@@ -12,16 +12,8 @@ images via requests to the Flicker API, whereas my implementation joined all inf
  
 Another notable contribution is that the method for downloading a subset of files keeps track of how many images couldn't be downloaded.
 So if for n photos sampled, we fail to download m of them, we then discard of the m photos from our subset, and sample another m, and we
-keep repeating this until no downloads fail. This guarentees the user will end up with exactly the number of photos they requested for each
+keep repeating this until no downloads fail. This guarantees the user will end up with exactly the number of photos they requested for each
 subset.
-
-# Description
-
-The most notable modes are Construct and YFCC100M. Construct offers functionality for creating a subdirectory within the
-one the Open Images csv's are stored in, where only user specified classes are described. The reasoning for creating a 
-subdirectory is two-fold, firstly so that only the classses required can be downloaded, the other reason is to reduce the
-expense of joining YFCC100M onto the Open Images dataset, as the implementation is very memory expensive. YFCC100M offers
-functionality for joining it onto the Open Images dataset, as described previously.
 
 # Folder structure maintained
 

@@ -131,7 +131,7 @@ from Construct import Construct
 new_folder = "80-10-10"
 root_dir = "C:\\path_to_csv\\PeopleAndAnimals"
 ns = (80,10,10)
-Construct(image_level=True).images_sample(new_folder, root_dir, ns)
+Construct(image_level=False).images_sample(new_folder, root_dir, ns)
 ```
 
 ### YFCC100M.join_labels_to_yfcc
@@ -153,7 +153,7 @@ code.
 from YFCC100M import YFCC100M
 labels_dir = "C:\\path_to_csv\\PeopleAndAnimals\\80-10-10"
 yfcc_dir = "C:\\path_to_yfcc"
-YFCC100M(image_level=True).join_labels_to_yfcc(labels_dir, yfcc_dir)
+YFCC100M(image_level=False).join_labels_to_yfcc(labels_dir, yfcc_dir)
 ```
 
 ## Acknowledgements

@@ -111,45 +111,46 @@ def download_image(root_dir, image_id, md5_image_hash, image_url, rotation=None,
     code = None
     warn_msg = None
     data = None
-    while attempts > 0:
-        try:
-            resp = urllib.request.urlopen(image_url, timeout=timeout)
-            code = None
-            warn_msg = None
-            data = resp.read()
-        except urllib.error.HTTPError as e:
-            code = e.code
-            warn_msg = str(e)
-            attempts -= 1
-            if attempts != 0:
-                time.sleep(wait)
-            continue
-        except Exception as e:
-            warn_msg = str(e)
-            attempts -= 1
-            if attempts != 0:
-                time.sleep(wait)
-            continue
-        hash_md5 = hashlib.md5()
-        hash_md5.update(data)
-        md5_download_hash = base64.b64encode(hash_md5.digest()).strip().decode('utf-8')
-        if md5_download_hash != md5_image_hash:
-            warn_msg = "MD5 did not match"
-            attempts -= 1
-            if attempts != 0:
-                time.sleep(wait)
-            continue
-        break
-    if warn_msg is not None:
-        if common_download_errors or code not in [404, 410]:
-            warnings.warn("Downloading {} failed with {}".format(image_id, warn_msg[1]))
-        return None
-    img = Image.open(BytesIO(data))
-    if rotation in [90, 180, 270]:
-        img = img.rotate(rotation, expand=True)
-    if resize:
-        img = keep_aspect_ratio_resizer(img)
     image_ext = image_url.split(".")[-1]
     image_path = os.path.join(root_dir, download_folder, "{}.{}".format(image_id, image_ext))
-    img.save(image_path)
+    if not os.path.isfile(image_path):
+        while attempts > 0:
+            try:
+                resp = urllib.request.urlopen(image_url, timeout=timeout)
+                code = None
+                warn_msg = None
+                data = resp.read()
+            except urllib.error.HTTPError as e:
+                code = e.code
+                warn_msg = str(e)
+                attempts -= 1
+                if attempts != 0:
+                    time.sleep(wait)
+                continue
+            except Exception as e:
+                warn_msg = str(e)
+                attempts -= 1
+                if attempts != 0:
+                    time.sleep(wait)
+                continue
+            hash_md5 = hashlib.md5()
+            hash_md5.update(data)
+            md5_download_hash = base64.b64encode(hash_md5.digest()).strip().decode('utf-8')
+            if md5_download_hash != md5_image_hash:
+                warn_msg = "MD5 did not match"
+                attempts -= 1
+                if attempts != 0:
+                    time.sleep(wait)
+                continue
+            break
+        if warn_msg is not None:
+            if common_download_errors or code not in [404, 410]:
+                warnings.warn("Downloading {} failed with {}".format(image_id, warn_msg[1]))
+            return None
+        img = Image.open(BytesIO(data))
+        if rotation in [90, 180, 270]:
+            img = img.rotate(rotation, expand=True)
+        if resize:
+            img = keep_aspect_ratio_resizer(img)
+        img.save(image_path)
     return image_id

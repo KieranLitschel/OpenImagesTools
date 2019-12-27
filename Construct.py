@@ -113,8 +113,8 @@ class Construct:
         new_classes_path = os.path.join(root_dir, new_folder, classes_file)
         Common.new_text_file(new_classes_path, classes)
 
-    def images_sample(self, new_folder, root_dir, ns, n_jobs=None, fix_rotation=None, required_columns=None, seed=None,
-                      attempts=None, timeout=None, wait=None, common_download_errors=None):
+    def images_sample(self, new_folder, root_dir, ns, n_jobs=None, fix_rotation=None, resize=None, required_columns=None,
+                      seed=None, attempts=None, timeout=None, wait=None, common_download_errors=None):
         """ Samples n random images and builds a new dataset in new_folder where only the specified classes are present
 
         Parameters
@@ -131,6 +131,10 @@ class Construct:
         fix_rotation : bool
             Whether to fix the rotation of the image, by default true, see here for more information
             https://storage.googleapis.com/openimages/web/2018-05-17-rotation-information.html
+        resize : bool
+            Whether to resize images as described in the Faster RCNN paper, and discussed here
+            https://github.com/tensorflow/models/issues/1794#issuecomment-311569473 . Benefit is reduces storage space
+            without effecting training if using the FasterRCNN Inception ResNet V2 architecture. Default is False.
         required_columns : list of str
             Set of columns required to not be the empty string for the row to be included in the sample
         seed : int
@@ -180,7 +184,7 @@ class Construct:
             pos = 0
             pool = multiprocessing.Pool(n_jobs)
             downloader = partial(Common.pass_args_to_f,
-                                 partial(Download.download_image, images_folder, download_folder=subset,
+                                 partial(Download.download_image, images_folder, resize=resize, download_folder=subset,
                                          attempts=attempts, timeout=timeout, wait=wait,
                                          common_download_errors=common_download_errors))
             req = n

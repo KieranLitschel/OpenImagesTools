@@ -7,10 +7,67 @@ import warnings
 import os
 from PIL import Image
 from io import BytesIO
+import socket
+
+Image.MAX_IMAGE_PIXELS = None
 
 
-def download_image(root_dir, image_id, md5_image_hash, image_url, rotation=None, download_folder=None,
-                   attempts=None, timeout=None, wait=None, common_download_errors=None):
+def resize_one_dim(img, longest, new_length):
+    """ Resizes image such that longest/shortest side of the image is of new_length
+
+    Parameters
+    ----------
+    img : PIL.Image.Image
+        Image to be resized
+    longest : bool
+        Which side to make new_length long, if True pick longest side, otherwise pick shortest
+    new_length : int
+        Required length for new side
+
+    Returns
+    -------
+    PIL.Image.Image
+        Resized image
+    """
+
+    w, h = img.size
+    if longest:
+        resize_width = w > h
+    else:
+        resize_width = w < h
+    if resize_width:
+        h = int(h * (new_length / w))
+        w = new_length
+    else:
+        w = int(w * (new_length / h))
+        h = new_length
+    return img.resize((w, h), Image.BILINEAR)
+
+
+def keep_aspect_ratio_resizer(img):
+    """ Resizes image using method discussed in Faster RCNN paper. First resizes image such that shortest side becomes
+    600 pixels long, and if the longer side exceeds 1024 pixels, resizes such that the longer size is 1024 pixels
+    instead.
+
+    Parameters
+    ----------
+    img : PIL.Image.Image
+        Image to be resized
+
+    Returns
+    -------
+    PIL.Image.Image
+        Resized image
+    """
+    new_img = resize_one_dim(img, False, 600)
+    w, h = new_img.size
+    if max(w, h) > 1024:
+        new_img = resize_one_dim(img, True, 1024)
+    return new_img
+
+
+def download_image(root_dir, image_id, md5_image_hash, image_url, rotation=None, resize=None,
+                   download_folder=None, attempts=None, timeout=None, wait=None, common_download_errors=None):
     """ Attempts to download the image, if it fails None is returned, otherwise the image_id
 
     Parameters
@@ -25,6 +82,10 @@ def download_image(root_dir, image_id, md5_image_hash, image_url, rotation=None,
         Url to download image from
     rotation : int
         How much to rotate image by (must be one of 0, 90, 180, 270, or None), default None meaning no rotation
+    resize : bool
+        Whether to resize images as described in the Faster RCNN paper, and discussed here
+        https://github.com/tensorflow/models/issues/1794#issuecomment-311569473 . Benefit is reduces storage space
+        without effecting training if using the FasterRCNN Inception ResNet V2 architecture. Default is False.
     download_folder : str
         Folder to download images into
     attempts : int
@@ -42,6 +103,7 @@ def download_image(root_dir, image_id, md5_image_hash, image_url, rotation=None,
         The image id if the download is successful, otherwise None
     """
 
+    resize = resize if resize is not None else False
     download_folder = download_folder or 'images'
     attempts = attempts or 3
     timeout = timeout or 2
@@ -53,6 +115,9 @@ def download_image(root_dir, image_id, md5_image_hash, image_url, rotation=None,
     while attempts > 0:
         try:
             resp = urllib.request.urlopen(image_url, timeout=timeout)
+            code = None
+            warn_msg = None
+            data = resp.read()
         except urllib.error.HTTPError as e:
             code = e.code
             warn_msg = str(e)
@@ -60,9 +125,12 @@ def download_image(root_dir, image_id, md5_image_hash, image_url, rotation=None,
             if attempts != 0:
                 time.sleep(wait)
             continue
-        code = None
-        warn_msg = None
-        data = resp.read()
+        except socket.timeout as e:
+            warn_msg = str(e)
+            attempts -= 1
+            if attempts != 0:
+                time.sleep(wait)
+            continue
         hash_md5 = hashlib.md5()
         hash_md5.update(data)
         md5_download_hash = base64.b64encode(hash_md5.digest()).strip().decode('utf-8')
@@ -80,6 +148,8 @@ def download_image(root_dir, image_id, md5_image_hash, image_url, rotation=None,
     img = Image.open(BytesIO(data))
     if rotation in [90, 180, 270]:
         img = img.rotate(rotation, expand=True)
+    if resize:
+        img = keep_aspect_ratio_resizer(img)
     image_ext = image_url.split(".")[-1]
     image_path = os.path.join(root_dir, download_folder, "{}.{}".format(image_id, image_ext))
     img.save(image_path)

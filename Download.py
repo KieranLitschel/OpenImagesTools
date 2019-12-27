@@ -7,7 +7,6 @@ import warnings
 import os
 from PIL import Image
 from io import BytesIO
-import socket
 
 Image.MAX_IMAGE_PIXELS = None
 
@@ -125,7 +124,7 @@ def download_image(root_dir, image_id, md5_image_hash, image_url, rotation=None,
             if attempts != 0:
                 time.sleep(wait)
             continue
-        except socket.timeout as e:
+        except Exception as e:
             warn_msg = str(e)
             attempts -= 1
             if attempts != 0:

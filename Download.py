@@ -5,10 +5,12 @@ import base64
 import time
 import warnings
 import os
+from PIL import Image
+from io import BytesIO
 
 
-def download_image(root_dir, image_id, md5_image_hash, image_url, download_folder=None, attempts=None,
-                   timeout=None, wait=None):
+def download_image(root_dir, image_id, md5_image_hash, image_url, rotation=None, download_folder=None,
+                   attempts=None, timeout=None, wait=None):
     """ Attempts to download the image, if it fails None is returned, otherwise the image_id
 
     Parameters
@@ -21,6 +23,8 @@ def download_image(root_dir, image_id, md5_image_hash, image_url, download_folde
         Expected base64-encoded MD5 hash of downloaded image
     image_url : str
         Url to download image from
+    rotation : int
+        How much to rotate image by (must be one of 0, 90, 180, 270, or None), default None meaning no rotation
     download_folder : str
         Folder to download images into
     attempts : int
@@ -66,9 +70,10 @@ def download_image(root_dir, image_id, md5_image_hash, image_url, download_folde
     if warn_msg is not None:
         warnings.warn("Downloading {} failed with {}".format(image_id, warn_msg))
         return None
+    img = Image.open(BytesIO(data))
+    if rotation in [90, 180, 270]:
+        img = img.rotate(rotation, expand=True)
     image_ext = image_url.split(".")[-1]
     image_path = os.path.join(root_dir, download_folder, "{}.{}".format(image_id, image_ext))
-    f = open(image_path, 'wb')
-    f.write(data)
-    f.close()
+    img.save(image_path)
     return image_id

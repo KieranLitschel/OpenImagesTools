@@ -113,7 +113,7 @@ class Construct:
         new_classes_path = os.path.join(root_dir, new_folder, classes_file)
         Common.new_text_file(new_classes_path, classes)
 
-    def images_sample(self, new_folder, root_dir, ns, n_jobs=None, required_columns=None, seed=None,
+    def images_sample(self, new_folder, root_dir, ns, n_jobs=None, fix_rotation=None, required_columns=None, seed=None,
                       attempts=None, timeout=None, wait=None):
         """ Samples n random images and builds a new dataset in new_folder where only the specified classes are present
 
@@ -128,6 +128,9 @@ class Construct:
         n_jobs : int
             Number of images to download in parallel at once. Default of 9, as there are around 9 farms, so this means
             on average we'll only be making 1 request to a farm at a time
+        fix_rotation : bool
+            Whether to fix the rotation of the image, by default true, see here for more information
+            https://storage.googleapis.com/openimages/web/2018-05-17-rotation-information.html
         required_columns : list of str
             Set of columns required to not be the empty string for the row to be included in the sample
         seed : int
@@ -142,6 +145,7 @@ class Construct:
 
         seed = seed or 0
         n_jobs = n_jobs or 9
+        fix_rotation = fix_rotation if fix_rotation is not None else True
 
         new_root = os.path.join(root_dir, new_folder)
         images_folder = os.path.join(new_root, "images")
@@ -175,12 +179,13 @@ class Construct:
             pool = multiprocessing.Pool(n_jobs)
             downloader = partial(Common.pass_args_to_f,
                                  partial(Download.download_image, images_folder, download_folder=subset,
-                                         attempts=attempts,
-                                         timeout=timeout, wait=wait))
+                                         attempts=attempts, timeout=timeout, wait=wait))
             req = n
             print("Downloading images")
             while req > 0:
-                args = [[row["ImageID"], row["OriginalMD5"], row["OriginalURL"]] for row in rows[pos: pos + req]]
+                args = [[row["ImageID"], row["OriginalMD5"], row["OriginalURL"],
+                         int(float(row["Rotation"])) if fix_rotation and row["Rotation"] is not '' else None]
+                        for row in rows[pos: pos + req]]
                 successful_download_ids = tqdm(pool.imap(downloader, args))
                 for image_id in successful_download_ids:
                     if image_id is not None:

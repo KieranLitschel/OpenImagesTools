@@ -103,15 +103,19 @@ considered invalid and not included in the sample.
 * Each subset will always be the exact size the user specified, unless the user has requested the subset be larger than
 the number of valid samples in the dataset, in which case the size will be the number of valid samples.
 
-There also some other arguments that can be passed that are noteworthy, including:
+There also some other optional arguments that can be passed that are noteworthy, including:
 
 * n_jobs - Number of jobs, by default set to 9, as there are around 9 farms, so this means on average we'll only be 
 making 1 request to a farm at a time.
+* fix_rotation - This rotates images so that are they saved in the orientation the original uploader specified. This is
+by default set to True. You can read more about why this is necessary 
+[here](https://storage.googleapis.com/openimages/web/2018-05-17-rotation-information.html).
 * required_columns - This is most useful when combining Open Images with YFCC100M. If there's a column (e.g. long and 
 lat) that you'd like to not be None, you can add these columns as a list here, and then the sample will only be built
 from rows where these columns are not None.
 * seed - Seed for the random number generator, used to ensure repeatability of the randomness in the function. By default
  will use seed of 0.
+
  
 #### Example usage
 

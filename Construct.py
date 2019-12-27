@@ -114,7 +114,7 @@ class Construct:
         Common.new_text_file(new_classes_path, classes)
 
     def images_sample(self, new_folder, root_dir, ns, n_jobs=None, fix_rotation=None, required_columns=None, seed=None,
-                      attempts=None, timeout=None, wait=None):
+                      attempts=None, timeout=None, wait=None, common_download_errors=None):
         """ Samples n random images and builds a new dataset in new_folder where only the specified classes are present
 
         Parameters
@@ -141,6 +141,8 @@ class Construct:
             Timeout in seconds for a request
         wait : float
             Time to wait after a failed download attempt
+        common_download_errors : bool
+            Whether to show common expected download error (HTTP 404 and 410) messages, default False
         """
 
         seed = seed or 0
@@ -179,7 +181,8 @@ class Construct:
             pool = multiprocessing.Pool(n_jobs)
             downloader = partial(Common.pass_args_to_f,
                                  partial(Download.download_image, images_folder, download_folder=subset,
-                                         attempts=attempts, timeout=timeout, wait=wait))
+                                         attempts=attempts, timeout=timeout, wait=wait,
+                                         common_download_errors=common_download_errors))
             req = n
             print("Downloading images")
             while req > 0:

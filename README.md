@@ -115,6 +115,8 @@ lat) that you'd like to not be None, you can add these columns as a list here, a
 from rows where these columns are not None.
 * seed - Seed for the random number generator, used to ensure repeatability of the randomness in the function. By default
  will use seed of 0.
+* common_download_errors - Whether to show common expected download error (HTTP 404 and 410) messages. By default False.
+
 
  
 #### Example usage

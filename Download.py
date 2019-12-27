@@ -10,7 +10,7 @@ from io import BytesIO
 
 
 def download_image(root_dir, image_id, md5_image_hash, image_url, rotation=None, download_folder=None,
-                   attempts=None, timeout=None, wait=None):
+                   attempts=None, timeout=None, wait=None, common_download_errors=None):
     """ Attempts to download the image, if it fails None is returned, otherwise the image_id
 
     Parameters
@@ -33,6 +33,8 @@ def download_image(root_dir, image_id, md5_image_hash, image_url, rotation=None,
         Timeout in seconds for request
     wait : float
         Time to wait after a failed download
+    common_download_errors : bool
+            Whether to show common expected download error (HTTP 404 and 410) messages, default False
 
     Returns
     -------
@@ -44,17 +46,21 @@ def download_image(root_dir, image_id, md5_image_hash, image_url, rotation=None,
     attempts = attempts or 3
     timeout = timeout or 2
     wait = wait or 2
+    common_download_errors = common_download_errors if common_download_errors is not None else False
+    code = None
     warn_msg = None
     data = None
     while attempts > 0:
         try:
             resp = urllib.request.urlopen(image_url, timeout=timeout)
         except urllib.error.HTTPError as e:
+            code = e.code
             warn_msg = str(e)
             attempts -= 1
             if attempts != 0:
                 time.sleep(wait)
             continue
+        code = None
         warn_msg = None
         data = resp.read()
         hash_md5 = hashlib.md5()
@@ -68,7 +74,8 @@ def download_image(root_dir, image_id, md5_image_hash, image_url, rotation=None,
             continue
         break
     if warn_msg is not None:
-        warnings.warn("Downloading {} failed with {}".format(image_id, warn_msg))
+        if common_download_errors or code not in [404, 410]:
+            warnings.warn("Downloading {} failed with {}".format(image_id, warn_msg[1]))
         return None
     img = Image.open(BytesIO(data))
     if rotation in [90, 180, 270]:

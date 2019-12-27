@@ -156,8 +156,10 @@ class Construct:
         new_root = os.path.join(root_dir, new_folder)
         images_folder = os.path.join(new_root, "images")
 
-        os.mkdir(new_root)
-        os.mkdir(images_folder)
+        if not os.path.isdir(new_root):
+            os.mkdir(new_root)
+        if not os.path.isdir(images_folder):
+            os.mkdir(images_folder)
 
         subsets = ["train", "validation", "test"]
         for i in range(len(subsets)):
@@ -173,7 +175,9 @@ class Construct:
             rows = Select.get_rows(image_ids_path, required_columns=required_columns)
             selected_image_ids = set()
 
-            os.mkdir(os.path.join(images_folder, subset))
+            subset_path = os.path.join(images_folder, subset)
+            if not os.path.isdir(subset_path):
+                os.mkdir(subset_path)
 
             if n is None:
                 n = len(rows)

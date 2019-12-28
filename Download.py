@@ -145,7 +145,7 @@ def download_image(root_dir, image_id, md5_image_hash, image_url, rotation=None,
             break
         if warn_msg is not None:
             if common_download_errors or code not in [404, 410]:
-                warnings.warn("Downloading {} failed with {}".format(image_id, warn_msg[1]))
+                warnings.warn("Downloading {} failed with {}".format(image_id, warn_msg))
             return None
         img = Image.open(BytesIO(data))
         if rotation in [90, 180, 270]:

@@ -25,7 +25,7 @@ class Statistics:
         root_dir : str
             Root directory containing csv files and new folder
         human_readable : bool
-            Whether the dictionary should use the class labels as keys or human descriptions
+            Whether the dictionary should use the class labels as keys or human descriptions, default is True
 
         Returns
         -------
@@ -49,7 +49,8 @@ class Statistics:
                     class_counts[label_name][subset] = 0
                 class_counts[label_name][subset] += 1
         if human_readable:
-            label_to_human_label = Select.class_names_to_human_names(os.path.join(root_dir, "class-descriptions.csv"))
+            label_to_human_label = Select.class_names_to_human_names(
+                os.path.join(root_dir, self.common.get_classes_description_file()))
             for label in label_to_human_label.keys():
                 class_counts[label_to_human_label[label]] = class_counts[label]
                 del class_counts[label]

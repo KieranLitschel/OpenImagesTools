@@ -207,3 +207,14 @@ class Common:
         """
 
         return "{}-annotations-bbox.csv".format(subset)
+
+    def get_classes_description_file(self):
+        """ Get the name of the class descriptions file
+
+        Returns
+        -------
+        str
+            Name of class descriptions file
+        """
+
+        return "class-descriptions{}.csv".format("" if self.image_level else "-boxable")

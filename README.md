@@ -106,7 +106,8 @@ the number of valid samples in the dataset, in which case the size will be the n
 There also some other optional arguments that can be passed that are noteworthy, including:
 
 * n_jobs - Number of jobs, by default set to 9, as there are around 9 farms, so this means on average we'll only be 
-making 1 request to a farm at a time.
+making 1 request to a farm at a time. Might want to modify this depending on internet speed, I found 100 jobs worked well for a 1000 Mbps download speed.
+* resize - Whether to resize images as described in the Faster RCNN paper, and discussed [here] (https://github.com/tensorflow/models/issues/1794#issuecomment-311569473) . Benefit is reduces storage space without effecting training if using the FasterRCNN Inception ResNet V2 architecture. Default is False.
 * fix_rotation - This rotates images so that are they saved in the orientation the original uploader specified. This is
 by default set to True. You can read more about why this is necessary 
 [here](https://storage.googleapis.com/openimages/web/2018-05-17-rotation-information.html).

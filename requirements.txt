@@ -2,4 +2,4 @@ awscli==1.16.291
 boto==2.49.0
 botocore==1.13.27
 tqdm==4.36.1
-pillow==8.1.1
+pillow==9.0.1
